@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Mail</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f1efef;
+            color: #4a4a4a; /* Warna teks gelap untuk kontras */
+            margin: 0;
+            padding: 0;
+        }
+        main {
+            background-color:  #d9d7aa; /* Warna abu terang yang lebih aman */
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 600px;
+            margin: 50px auto;
+            text-align: center;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            font-size: 24px;
+            color: black;
+        }
+        h2 {
+            font-size: 18px;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            color: black;
+        }
+        button {
+            background-color: #7d7c7c;
+            color: #f1efef;
+            font-weight: bold;
+            font-size: 16px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #5a5a5a;
+        }
+        i {
+            display: block;
+            margin-top: 20px;
+            font-size: 14px;
+            color: brown;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>Hi {{username}},</h1>
+        <h2>Please click here to set your new email</h2>
+        <a href={{link}} style="text-decoration: none;">
+            <button>Click Here</button>
+        </a>
+        <br/>
+        <i>this link will expire in 1 hour</i>
+    </main>
+</body>
+</html>

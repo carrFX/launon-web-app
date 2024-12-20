@@ -1,0 +1,261 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum WorkerRoles {
+  ironer
+  washer
+  packer
+  driver
+}
+
+enum OrderStatus {
+  waiting_for_pickup
+  on_the_way_to_outlet
+  arrived_at_outlet
+  weighed
+  washed
+  ironed
+  packed
+  waiting_for_payment
+  ready_for_delivery
+  on_the_way_to_customer
+  delivered_to_customer
+  confirmed
+  recalculate
+}
+
+enum RoleUser {
+  customer
+  superAdmin
+}
+
+enum PaymentStatus {
+  pending
+  unpaid
+  paid
+}
+
+model User {
+  id           String    @id @default(nanoid())
+  mail         String    @unique
+  username     String    @default("")
+  avatar       String    @default("https://cdn.pixabay.com/photo/2018/11/13/21/43/avatar-3814049_960_720.png")
+  password     String?
+  role         RoleUser  @default(customer)
+  userToken    String?   @unique
+  userTokenExp DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  verifyUser    VerifyUser[]
+  addresses     Address[]      @relation("UserAddresses")
+  orders        Order[]
+  notifications Notification[]
+}
+
+model VerifyUser {
+  id          String    @id @default(nanoid())
+  userId      String
+  verified    Boolean   @default(false)
+  verifyToken String?   @unique
+  tokenExp    DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Address {
+  id         String   @id @default(nanoid())
+  userId     String?
+  outletId   String?
+  street     String
+  city       String
+  state      String
+  postalCode String
+  country    String
+  isMain     Boolean  @default(false)
+  phone      String?
+  latitude   Float?
+  longitude  Float?
+  isDeleted  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user        User?                   @relation("UserAddresses", fields: [userId], references: [id], onDelete: Cascade)
+  outlet      Outlet?                 @relation(fields: [outletId], references: [id])
+  orders      Order[]
+  fromAddress PickupDeliveryRequest[] @relation("FromAddress")
+  toAddress   PickupDeliveryRequest[] @relation("ToAddress")
+}
+
+model Outlet {
+  id         String   @id @default(nanoid())
+  outletName String
+  password   String
+  email      String   @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  workers      OutletWorker[]
+  addresses    Address[]
+  orders       Order[]
+  notification Notification[]
+}
+
+model OutletWorker {
+  id        String      @id @default(nanoid())
+  mail      String
+  username  String
+  role      WorkerRoles
+  outletId  String
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  driverStatus     DriverStatus?
+  outlet           Outlet                  @relation(fields: [outletId], references: [id])
+  attendances      Attendance[]
+  jobHistory       WorkerJobHistory[]
+  pickupDeliveries PickupDeliveryRequest[] @relation("DriverRequests")
+}
+
+model Order {
+  id             String        @id @default(nanoid())
+  invoice        String        @unique @default(nanoid())
+  userId         String
+  addressId      String
+  outletId       String
+  package        String?
+  status         OrderStatus   @default(waiting_for_pickup)
+  pickupSchedule DateTime
+  totalWeight    Float?
+  totalItems     Int           @default(0)
+  totalPrice     Float?
+  paymentStatus  PaymentStatus @default(pending)
+  isDeleted      Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  user                   User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  address                Address                 @relation(fields: [addressId], references: [id])
+  outlet                 Outlet                  @relation(fields: [outletId], references: [id])
+  orderItems             OrderItem[]
+  pickupDeliveryRequests PickupDeliveryRequest[]
+  // payments Payment[]
+  orderHistory           OrderHistory[]
+  workerJobHistory       WorkerJobHistory[]
+}
+
+model OrderItem {
+  id         String   @id @default(nanoid())
+  orderId    String
+  shirt      Int      @default(0)
+  longShirt  Int      @default(0)
+  pants      Int      @default(0)
+  longPant   Int      @default(0)
+  veil       Int      @default(0)
+  underwear  Int      @default(0)
+  bedsheet   Int      @default(0)
+  pillowCase Int      @default(0)
+  blanket    Int      @default(0)
+  towel      Int      @default(0)
+  curtain    Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id])
+}
+
+model PickupDeliveryRequest {
+  id            String   @id @default(nanoid())
+  orderId       String
+  distance      Int
+  driverId      String
+  fromAddressId String
+  toAddressId   String
+  requestType   String   @default("")
+  status        String   @default("Wait to pick up")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  order       Order              @relation(fields: [orderId], references: [id])
+  fromAddress Address            @relation("FromAddress", fields: [fromAddressId], references: [id])
+  toAddress   Address            @relation("ToAddress", fields: [toAddressId], references: [id])
+  history     WorkerJobHistory[]
+  driver      OutletWorker       @relation(fields: [driverId], references: [id], name: "DriverRequests")
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    String?
+  outletId  String?
+  title     String
+  message   String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  worker Outlet? @relation(fields: [outletId], references: [id])
+}
+
+model Attendance {
+  id        String    @id @default(nanoid())
+  workerId  String
+  date      DateTime
+  checkIn   DateTime?
+  checkOut  DateTime?
+  createdAt DateTime  @default(now())
+
+  worker OutletWorker @relation(fields: [workerId], references: [id])
+
+  @@unique([workerId, date])
+}
+
+model WorkerJobHistory {
+  id             String      @id @default(nanoid())
+  workerId       String
+  orderId        String
+  station        WorkerRoles
+  pickupDelivery String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  worker                OutletWorker           @relation(fields: [workerId], references: [id])
+  order                 Order                  @relation(fields: [orderId], references: [id])
+  pickupDeliveryRequest PickupDeliveryRequest? @relation(fields: [pickupDelivery], references: [id])
+}
+
+model DriverStatus {
+  id       String @id @default(nanoid())
+  driverId String @unique
+  status   String @default("available")
+  PdrId    Int?
+
+  outletWorker OutletWorker @relation(fields: [driverId], references: [id], onDelete: Cascade)
+}
+
+// model Payment {
+//   id             String      @id @default(nanoid())
+//   orderId        String
+//   amount         Float
+//   paymentMethod  String
+//   paymentDate    DateTime @default(now())
+//   confirmed      Boolean  @default(false)
+
+//   order Order @relation(fields: [orderId], references: [id])
+// }
+
+model OrderHistory {
+  id         String   @id @default(nanoid())
+  orderId    String
+  status     String
+  changeDate DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id])
+}

@@ -1,0 +1,80 @@
+{
+    "carousel" : [
+        {
+            "id" : 1,
+            "name" : "carousel1",
+            "image" : "/carousel/carousel1.jpg"
+        },
+        {
+            "id" : 2,
+            "name" : "carousel2",
+            "image" : "/carousel/carousel2.jpg"
+        },
+        {
+            "id" : 3,
+            "name" : "carousel3",
+            "image" : "/carousel/carousel3.jpg"
+        },
+        {
+            "id" : 4,
+            "name" : "carousel4",
+            "image" : "/carousel/carousel4.jpg"
+        }
+    ],
+    "services" : {
+        "image" : "/services/complete.jpg",
+        "alt" : "services-img"
+    },
+    "cardServices" : [
+        {
+            "services" : "Wash Only Package", 
+            "image" : "/services/wash-only.jpg",
+            "route" : "/services/wash-only",
+            "price" : 30000,
+            "description" : "Serahkan urusan cuci-mencuci kepada kami! Dengan Paket Wash Only seharga Rp 30.000 per kilogram, pakaian Anda akan dibersihkan dengan standar profesional. Cocok untuk Anda yang membutuhkan cucian cepat dan berkualitas. Tidak perlu khawatir soal cucian menumpuk, kami siap menjemput dan mengantarkan kembali pakaian Anda dengan kondisi bersih dan segar. Pesan sekarang dan nikmati kemudahan tanpa repot!"
+        },
+        {
+            "services" : "Iron Only Package", 
+            "image" : "/services/iron-only.jpg", 
+            "route" : "/services/iron-only",
+            "price" : 25000,
+            "description" : "Punya pakaian yang sudah dicuci tapi belum sempat disetrika? Jangan khawatir, Paket Iron Only hadir untuk membantu! Hanya dengan Rp 25.000 per kilogram, kami akan memastikan setiap pakaian Anda disetrika dengan rapi sehingga siap dipakai kapan saja. Kami memahami pentingnya tampil prima, dan layanan kami dirancang untuk memastikan Anda selalu siap menghadapi hari tanpa harus bersusah payah menyetrika sendiri"
+        }, 
+        {
+            "services" : "Complete Care Package", 
+            "image" : "/services/complete.jpg", 
+            "route" : "/services/complete-care",
+            "price" : 50000,
+            "description" : "Ingin perawatan lengkap untuk pakaian Anda? Paket Complete Care adalah solusi terbaik! Dengan harga Rp 50.000 per kilogram, kami menyediakan layanan cuci, setrika, dan perawatan ekstra untuk pakaian Anda. Tidak hanya bersih, pakaian Anda juga akan disetrika rapi dan diantar kembali dalam kondisi sempurna. Hemat waktu dan tenaga dengan layanan terbaik dari LaunON. Pesan sekarang dan rasakan kenyamanan layanan laundry tanpa khawatir lagi!"
+        }
+    ],
+    "about" : ["/about/about.jpg", "/about/about2.jpg", "/about/about3.jpg", "/about/about4.jpg"],
+    "auth" : "/auth/auth.jpg",
+    "testimonials" : [
+        {
+            "name" : "Riska Aristina",
+            "image" : "/user/customer1.jpg",
+            "feedback" : "Layanan LaunON sangat cepat dan efisien! Saya sangat puas dengan hasil laundry yang bersih dan rapi."
+        },
+        {
+            "name" : "Maria Putri",
+            "image" : "/user/customer2.jpg",
+            "feedback" : "Sangat nyaman menggunakan LaunON, saya bisa request penjemputan tanpa repot keluar rumah. Hasil laundry juga sangat memuaskan."
+        },
+        {
+            "name" : "David Santoso",
+            "image" : "/user/customer3.jpg",
+            "feedback" : "Harga yang terjangkau dan pelayanan yang luar biasa! Laundry selalu siap tepat waktu dan kualitasnya bagus."
+        },
+        {
+            "name" : "Fitriani Dewi",
+            "image" : "/user/customer4.jpg",
+            "feedback" : "LaunON sangat membantu di saat saya sibuk. Penjemputan dan pengiriman cepat, serta hasil laundry sangat memuaskan!"
+        },
+        {
+            "name" : "Yusuf Arif",
+            "image" : "/user/customer5.jpg",
+            "feedback" : "Proses laundry yang mudah dan cepat. Kualitas laundry di LaunON selalu sempurna, saya pasti akan menggunakan lagi."
+        }
+    ]
+}

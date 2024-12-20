@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --custom-gray: #7d7c7c;
+  --custom-beige: #ccc8aa;
+  --custom-light: #f1efef;
+}
+
+body {
+  color: black;
+}
+
+.bg-washer {
+  background-image: url('/services/wash-only.jpg');
+}
+.bg-ironer {
+  background-image: url('/services/iron-only.jpg');
+}
+.bg-packer {
+  background-image: url('/services/complete.jpg');
+}
+.bg-driver {
+  background-image: url('/services/driver.jpg');
+}
+.bg-img {
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: bottom;
+  position: relative;
+}
+

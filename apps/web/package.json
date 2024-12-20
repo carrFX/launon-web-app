@@ -1,0 +1,44 @@
+{
+  "name": "web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "serve": "next start -p $PORT",
+    "lint": "next lint",
+    "test": "npx cypress verify & cypress run --component"
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.3.0",
+    "cross-env": "^7.0.3",
+    "didyoumean": "^1.2.2",
+    "dotenv": "^16.4.5",
+    "formik": "^2.4.6",
+    "jwt-decode": "^4.0.0",
+    "next": "14.0.4",
+    "react": "^18",
+    "react-dom": "^18",
+    "react-icons": "^5.3.0",
+    "react-redux": "^9.1.2",
+    "react-slick": "^0.30.2",
+    "react-toastify": "^10.0.6",
+    "redux-persist": "^6.0.0",
+    "slick-carousel": "^1.8.1",
+    "yup": "^1.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@types/react-slick": "^0.23.13",
+    "autoprefixer": "^10.4.20",
+    "cypress": "^13.6.2",
+    "daisyui": "^4.12.13",
+    "eslint": "^8",
+    "eslint-config-next": "14.0.4",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.14",
+    "typescript": "^5"
+  }
+}

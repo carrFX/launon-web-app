@@ -1,0 +1,23 @@
+-- CreateTable
+CREATE TABLE `OrderItem` (
+    `id` VARCHAR(191) NOT NULL,
+    `orderId` VARCHAR(191) NOT NULL,
+    `shirt` INTEGER NOT NULL DEFAULT 0,
+    `longShirt` INTEGER NOT NULL DEFAULT 0,
+    `pants` INTEGER NOT NULL DEFAULT 0,
+    `longPant` INTEGER NOT NULL DEFAULT 0,
+    `veil` INTEGER NOT NULL DEFAULT 0,
+    `underwear` INTEGER NOT NULL DEFAULT 0,
+    `bedsheet` INTEGER NOT NULL DEFAULT 0,
+    `pillowCase` INTEGER NOT NULL DEFAULT 0,
+    `blanket` INTEGER NOT NULL DEFAULT 0,
+    `towel` INTEGER NOT NULL DEFAULT 0,
+    `curtain` INTEGER NOT NULL DEFAULT 0,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- AddForeignKey
+ALTER TABLE `OrderItem` ADD CONSTRAINT `OrderItem_orderId_fkey` FOREIGN KEY (`orderId`) REFERENCES `Order`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
