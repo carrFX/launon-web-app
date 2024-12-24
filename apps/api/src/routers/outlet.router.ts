@@ -1,5 +1,4 @@
 import { OutletController } from '@/controllers/outlet.controllers';
-import { verifyToken } from '@/middlewares/token';
 import { Router } from 'express';
 
 export class OutletRouter {

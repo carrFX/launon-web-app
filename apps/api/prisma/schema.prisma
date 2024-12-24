@@ -50,7 +50,7 @@ model User {
   role         RoleUser  @default(customer)
   userToken    String?   @unique
   userTokenExp DateTime?
-  refreshToken String?
+  refreshToken String?   @db.VarChar(255)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 

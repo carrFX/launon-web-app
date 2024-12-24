@@ -1,5 +1,6 @@
 import { UserController } from '@/controllers/user.controller';
 import { uploaderImg } from '@/helpers/uploader';
+import { authenticateToken } from '@/middlewares/auth.middleware';
 import { validateOnlyVerify, validateUpdateMailUser, validateUpdatePass, validateUsername } from '@/middlewares/validator/userValidator';
 import { Router } from 'express';
 
@@ -13,8 +14,9 @@ export class UserRouter {
     this.initializeRoutes();
   }
   private initializeRoutes(): void {
+    // authenticateToken
     this.router.delete('/delete', this.userController.deleteUser);
-    this.router.get('/profile', this.userController.getUserProfile);
+    this.router.get('/profile', authenticateToken, this.userController.getUserProfile);
     this.router.patch('/update-mail', validateUpdateMailUser, this.userController.updateMailUser); // oldMail, newMail, token
     this.router.patch('/only-verify', validateOnlyVerify, this.userController.onlyVerifyAccount); // verifiedToken
     this.router.patch('/delete-avatar', this.userController.deleteAvatar);

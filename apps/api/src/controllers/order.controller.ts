@@ -5,7 +5,7 @@ import { findNearestOutlet } from '@/helpers/haversine';
 import axios from 'axios';
 import { existingAllOrders, existingAllOrdersByUserId, existingOrderByDate, existingOrderById, existingOrderByInvoice } from '../services/existing-data/order.exist';
 import { existingOutletById } from '@/services/existing-data/outlet.exist';
-import { existingUserById, profileUserById } from '@/services/existing-data/user.exist';
+import { existingUserById } from '@/services/existing-data/user.exist';
 import { orderIsConfirmedStatus, orderIsDeleted, updatePriceWeight } from '@/services/update-data/order.update';
 import { existingAddressById } from '@/services/existing-data/address.exist';
 import { createNewOrder } from '@/services/create-data/order.create';
@@ -36,7 +36,7 @@ export class OrderController {
       const customerAddress = await prisma.address.findUnique({
         where: { id: order.addressId },
       });
-      const customerIntro = await profileUserById(order.userId);
+      const customerIntro = await existingUserById(order.userId);
       const outletName = await existingOutletById(order.outletId);
       return res.status(200).send({
         status: 'ok',

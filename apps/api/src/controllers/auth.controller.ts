@@ -9,8 +9,9 @@ import handlebars from 'handlebars';
 import { v4 as uuidv4 } from 'uuid';
 import dayjs from 'dayjs';
 import { existingUserById, existingUserByMail, existingUserByUserToken, existingVerifiedUser } from '@/services/existing-data/user.exist';
-import { setDataPassUser, updatePassUser, updateVerifyUserByUserId, updateVerifyUserByVerifyToken } from '@/services/update-data/user.update';
+import { setDataPassUser, updatePassUser, updateRefreshToken, updateVerifyUserByUserId, updateVerifyUserByVerifyToken } from '@/services/update-data/user.update';
 import { createNewUser, createVerifyUser } from '@/services/create-data/user.create';
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '@/helpers/jwtToken';
 const verifyToken = uuidv4();
 const verifyTokenExp = dayjs().add(1, 'hour').toDate();
 
@@ -52,11 +53,8 @@ export class AuthController {
         },
       ); 
     } catch (error) {
-      if (error instanceof Error) { 
-        res.status(400).send({ status: 'error', message: error.message});
-      } else {
-        res.status(400).send({ status: 'error', message: error });
-      }
+      const errorMessage = error instanceof Error ? error.message : error as string;
+      return res.status(500).send({ status: 'error',error: errorMessage });
     }
   }
   async setPassword(req: Request, res: Response) {
@@ -79,62 +77,62 @@ export class AuthController {
         message: 'Password set successfully, you can now login',
       });
     } catch (error) {
-      if (error instanceof Error) { 
-        res.status(400).send({ status: 'error', message: error.message, });
-      } else {
-        res.status(400).send({ status: 'error', message: error, });
-      }
+      const errorMessage = error instanceof Error ? error.message : error as string;
+      return res.status(500).send({ status: 'error',error: errorMessage });
     }
   }
-
   async loginWithMail(req: Request, res: Response) {
     try {
       const { mail, password } = req.body;
-      const existingUser = await prisma.user.findUnique({
-        where: { mail },
-      });
+      const existingUser = await existingUserByMail(mail);
       if (!existingUser) throw 'user not found !';
       if (existingUser.password === null)
         throw 'Please login with google if you dont have a password';
       const isValidPass = await compare(password, existingUser.password);
       if (!isValidPass) throw 'incorrect password !';
-      const payload = {
-        id: existingUser.id,
-        username: existingUser.username,
-        mail: existingUser.mail,
-        role: existingUser.role,
-      };
-      const loginToken = sign(payload, process.env.JWT_SECRET!, {
-        expiresIn: '30d',
-      });
-      res.cookie('loginToken', loginToken, {
+      const accessToken = await generateAccessToken(existingUser.id, existingUser.role);
+      const refreshToken = await generateRefreshToken(existingUser.id, existingUser.role);
+      await updateRefreshToken(existingUser.id, refreshToken);
+      res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
         maxAge: 30 * 24 * 60 * 60 * 1000,
-      });
-      res.cookie('role', existingUser.role);
-
-      res
-        .status(200)
-        .send({ status: 'ok', message: 'login success !', data: existingUser });
+      }).status(200)
+        .send({ status: 'ok', message: 'login success !', data: { user: existingUser, accessToken } });
     } catch (error) {
-      if (error instanceof Error) {
-        res.status(400).send({ status: 'error', message: error.message });
-      }
-      res.status(400).send({ status: 'error', message: error });
+      const errorMessage = error instanceof Error ? error.message : error as string;
+      return res.status(500).send({ status: 'error',error: errorMessage });
+    }
+  }
+  async refreshToken(req: Request, res: Response) {
+    try {
+      const { refreshToken } = req.cookies;
+      if (!refreshToken) throw new Error("refresh token not found");
+      const decoded = await verifyRefreshToken(refreshToken);
+      const user = await existingUserById(decoded.id);
+      // penanganan bisa juga dengan di logoutkan
+      if (!user || user.refreshToken !== refreshToken)throw new Error("invalid refresh token");
+      const newAccessToken = await generateAccessToken(user.id, user.role);
+      const newRefreshToken = await generateRefreshToken(user.id, user.role);
+      await updateRefreshToken(user.id, newRefreshToken);
+
+      res.cookie("refreshToken", newRefreshToken, {
+          httpOnly: true,
+        }).send({ status: 'ok', message: "refresh token success", accessToken: newAccessToken });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : error as string;
+      return res.status(500).send({ status: 'error',error: errorMessage });
     }
   }
   async logoutUser(req: Request, res: Response) {
+    const { refreshToken } = req.cookies;
     try {
-      const { loginToken, refreshToken } = req.cookies;
-      if (!loginToken) throw 'no user is logged in !';
-      res.clearCookie('loginToken');
-      res.clearCookie('role');
-      res.status(201).send({ status: 'ok', message: 'logout success !' });
+      if (!refreshToken) throw 'no user is logged in !';
+      const decoded = await verifyRefreshToken(refreshToken);
+      await updateRefreshToken(decoded.id, null);
+      res.clearCookie('refreshToken').status(201).send({ status: 'ok', message: 'logout success !' });
     } catch (error) {
-      if (error instanceof Error) {
-        res.status(400).send({ status: 'error', message: error.message });
-      }
-      res.status(400).send({ status: 'error', message: error });
+      const errorMessage = error instanceof Error ? error.message : error as string;
+      return res.status(500).send({ status: 'error',error: errorMessage });
     }
   }
 }

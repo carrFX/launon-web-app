@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { verifyToken } from '@/middlewares/token'; 
 import { PickupDeliveryRequestController } from '@/controllers/pdrd.controllers';
 import { validateIdOnParams } from '@/middlewares/validator/addressValidator';
 import { validateCreatePdr, validateUpdatePdr, validateUpdatePdrStatus } from '@/middlewares/validator/pdrdValidator';

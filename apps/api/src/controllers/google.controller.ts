@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
 import { OAuth2Client } from 'google-auth-library';
-import { sign } from 'jsonwebtoken';
 import { existingUserByMail } from '@/services/existing-data/user.exist';
 import { createNewUserWithGoogle, createVerifyGoogleAccount } from '@/services/create-data/user.create';
+import { generateAccessToken, generateRefreshToken } from '@/helpers/jwtToken';
+import { updateRefreshToken } from '@/services/update-data/user.update';
 
 export class GoogleController {
   private oAuth2Client: OAuth2Client;
@@ -49,22 +50,13 @@ export class GoogleController {
       await createVerifyGoogleAccount(user.id);
     }
 
-    const payloadJwt = {
-      id: user.id,
-      username: user.username,
-      email: user.mail,
-      role: user.role,
-    };
-
-    const loginToken = sign(payloadJwt, process.env.JWT_SECRET!, {
-      expiresIn: '30d',
-    });
-    res.cookie('loginToken', loginToken, {
+    const accessToken = await generateAccessToken(user.id, user.role);
+    const refreshToken = await generateRefreshToken(user.id, user.role);
+    await updateRefreshToken(user.id, refreshToken);
+    res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       maxAge: 30 * 24 * 60 * 60 * 1000,
-    });
-    res.cookie('role', user.role);
-
-    res.redirect('http://localhost:3000/');
+    }).status(200)
+      .send({ status: 'ok', message: 'login success !', data: { user: user, accessToken } }).redirect('http://localhost:3000/');
   }
 }

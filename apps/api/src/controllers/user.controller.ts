@@ -1,94 +1,78 @@
 import { Request, Response } from 'express';
 import prisma from '@/prisma';
 import { verify } from 'jsonwebtoken';
-import { compare, genSalt, hash } from 'bcrypt';
+import { compare } from 'bcrypt';
 import dayjs from 'dayjs';
 import { unVerifiedUser, updateAvaByUserId, updateMailUserByOldMail, updatePassUser, updateUsernameById, updateVerifyUserByVerifyToken } from '@/services/update-data/user.update';
-import { existingUserById, existingUserByMail, existingVerifiedUserByVerifiedToken, profileUserById } from '@/services/existing-data/user.exist';
+import { existingUserById, existingUserByMail, existingVerifiedUserByVerifiedToken } from '@/services/existing-data/user.exist';
 import { deleteUserById } from '@/services/delete.data/user.delete';
+import { verifyRefreshToken } from '@/helpers/jwtToken';
 export class UserController {
-
   async getUserProfile(req: Request, res: Response) {
+    const { refreshToken } = req.cookies;
     try {
-      const cookiesLoginToken = req.cookies?.loginToken;
-      if (!cookiesLoginToken) throw 'no user is logged in !';
-      const decoded = verify(cookiesLoginToken, process.env.JWT_SECRET!) as { id: string};
-      const existingUser = await profileUserById(decoded.id)
-
-      res.status(200).send({status: 'ok', message: 'get user success !', data: existingUser,});
+      if (!refreshToken) throw new Error("refresh token not found");
+      const decoded = await verifyRefreshToken(refreshToken);
+      const user = await existingUserById(decoded.id);
+      res.status(200).send({status: 'ok', message: 'get user success !', data: user,});
     } catch (error) {
-      if (error instanceof Error) {
-        res.status(400).send({ status: 'error', message: error.message, });
-      } else {
-        res.status(400).send({ status: 'error', message: error,});
-      }
+      const errorMessage = error instanceof Error ? error.message : error;
+      res.status(500).send({ message: errorMessage });
     }
   }
   async updateAvatar(req: Request, res: Response) {
     try {
       const ava = req.file?.filename;
+      const { refreshToken } = req.cookies;
       if (!ava) throw 'File not found';
+      if (!refreshToken) throw 'no user is logged in !';
       const linkAva = `${process.env.BACKEND_URL}/api/public/avatar/${ava}`;
-      const cookies = req.cookies.loginToken;
-      if (!cookies) throw 'no user is logged in !';
-      const decoded = verify(cookies, process.env.JWT_SECRET!) as { id: string };
+      const decoded = await verifyRefreshToken(refreshToken);
       const updateAva = await updateAvaByUserId(decoded.id, linkAva);
       return res.status(200).send({ status: 'ok', message: 'Edit avatar successfully',data: updateAva });
     } catch (error) {
-      if (error instanceof Error) {
-        res.status(400).send({status: 'error', message: error.message});
-      } else {
-        res.status(400).send({ status: 'error', message: error });
-      }
+      const errorMessage = error instanceof Error ? error.message : error;
+      res.status(500).send({ message: errorMessage });
     }
   }
 
   async deleteAvatar(req: Request, res: Response) {
     try {
-      const cookies = req.cookies.loginToken;
-      if (!cookies) throw 'no user is logged in !';
-      const decoded = verify(cookies, process.env.JWT_SECRET!) as { id: string };
+      const { refreshToken } = req.cookies;
+      if (!refreshToken) throw 'no user is logged in !';
+      const decoded = await verifyRefreshToken(refreshToken);
       const deleteAva = await updateAvaByUserId(decoded.id, 'https://cdn.pixabay.com/photo/2018/11/13/21/43/avatar-3814049_960_720.png')
       return res.status(200).send({ status: 'ok', message: 'Delete avatar successfully', data: deleteAva, });
     } catch (error) {
-      if (error instanceof Error) {
-        res.status(400).send({ status: 'error', message: error.message });
-      } else {
-        res.status(400).send({ status: 'error', message: error });
-      }
+      const errorMessage = error instanceof Error ? error.message : error;
+      res.status(500).send({ message: errorMessage });
     }
   }
 
   async updateUsername(req: Request, res: Response) {
     try {
       const {username} = req.body
-      const cookies = req.cookies.loginToken;
-      if (!cookies) throw 'no user is logged in !';
-      const decoded = verify(cookies, process.env.JWT_SECRET!) as { id: string };
+      const { refreshToken } = req.cookies.loginToken;
+      if (!refreshToken) throw 'no user is logged in !';
+      const decoded = await verifyRefreshToken(refreshToken);
       const user = await updateUsernameById(decoded.id, username);
       return res.status(200).send({ status: 'ok', message: 'Edit username successfully', data: user,});
     } catch (error) {
-      if (error instanceof Error) {
-        res.status(400).send({ status: 'error', message: error.message });
-      } else {
-        res.status(400).send({ status: 'error', message: error });
-      }
+      const errorMessage = error instanceof Error ? error.message : error;
+      res.status(500).send({ message: errorMessage });
     }
   }
   async deleteUser(req: Request, res: Response) {
     try {
-      const cookiesLoginToken = req.cookies?.loginToken;
-      if (!cookiesLoginToken) throw 'no user is logged in !';
-      const decoded = verify(cookiesLoginToken, process.env.JWT_SECRET!) as { id: string};
+      const { refreshToken } = req.cookies.loginToken;
+      if (!refreshToken) throw 'no user is logged in !';
+      const decoded = await verifyRefreshToken(refreshToken);
       const deleteUser = await deleteUserById(decoded.id)
       if (!deleteUser) throw 'User not found';
       res.status(200).send({ status: 'ok', message: 'delete user success !', data: deleteUser });
     } catch (error) {
-      if (error instanceof Error) {
-        res.status(400).send({ status: 'error', message: error.message });
-      } else {
-        res.status(400).send({ status: 'error', message: error });
-      }
+      const errorMessage = error instanceof Error ? error.message : error;
+      res.status(500).send({ message: errorMessage });
     }
   }
   async updateMailUser(req: Request, res: Response) {
@@ -103,11 +87,8 @@ export class UserController {
       await unVerifiedUser(user.id);
       res.status(200).send({ status: 'ok', message: 'update email success !', data: user });
     } catch (error) {
-      if (error instanceof Error) {
-        res.status(400).send({ status: 'error', message: error.message });
-      } else {
-        res.status(400).send({ status: 'error', message: error });
-      }
+      const errorMessage = error instanceof Error ? error.message : error;
+      res.status(500).send({ message: errorMessage });
     }
   }
   async updatePasswordUser(req: Request, res: Response) {
@@ -122,11 +103,8 @@ export class UserController {
       await updatePassUser(userId, newPassword)
       res.status(200).send({ status: 'ok', message: 'update password success !' });
     } catch (error) {
-      if (error instanceof Error) {
-        res.status(400).send({ status: 'error', message: error.message });
-      } else {
-        res.status(400).send({ status: 'error', message: error });
-      }
+      const errorMessage = error instanceof Error ? error.message : error;
+      res.status(500).send({ message: errorMessage });
     }
   }
   async onlyVerifyAccount(req: Request, res: Response) {
@@ -141,11 +119,8 @@ export class UserController {
       await updateVerifyUserByVerifyToken(verifiedToken);
       res.status(200).send({ status: 'ok', message: 'verify account success !' });
     } catch (error) {
-      if (error instanceof Error) {
-        res.status(400).send({ status: 'error', message: error.message });
-      } else {
-        res.status(400).send({ status: 'error', message: error });
-      }
+      const errorMessage = error instanceof Error ? error.message : error;
+      res.status(500).send({ message: errorMessage });
     }
   }
 }

@@ -7,13 +7,7 @@ export const existingUserByUserToken = async (userToken: string) => {
     return await prisma.user.findUnique({ where: { userToken } });
 }
 export const existingUserById = async (id: string) => {
-    return await prisma.user.findUnique({ where: { id } });
-}
-export const profileUserById = async (id: string) => {
-    return await prisma.user.findUnique({
-        where: { id },
-        include: { verifyUser: true }
-    })
+    return await prisma.user.findUnique({ where: { id }, include: { verifyUser: true } });
 }
 export const existingVerifiedUser = async (userId: string) => {
     return await prisma.verifyUser.findFirst({ where: { userId } });

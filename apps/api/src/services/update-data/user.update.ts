@@ -93,3 +93,11 @@ export const updateAvaByUserId = async (id: string, avatar: string) => {
       data: { avatar }
   })
 }
+export const updateRefreshToken = async (id: string, refreshToken: string | null) => {
+  const userExist = await existingUserById(id);
+  if (!userExist) throw new Error("User not found!");
+  return await prisma.user.update({ 
+      where: { id },
+      data: { refreshToken }
+  })
+}
