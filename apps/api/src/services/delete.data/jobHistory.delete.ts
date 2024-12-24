@@ -1,5 +1,4 @@
 import prisma from '@/prisma';
-import { getPdrdById } from '../existing-data/pdrd.exist';
 import { existingJobHistoryById } from '../existing-data/jobHistory.exist';
 
 export const deleteJobHistoryById = async (id: string) => {

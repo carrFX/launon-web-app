@@ -87,55 +87,54 @@ export class AuthController {
     }
   }
 
-  // async loginWithMail(req: Request, res: Response) {
-  
-  //   try {
-  //     const { email, password } = req.body;
-  //     const existingUser = await prisma.user.findUnique({
-  //       where: { email: email },
-  //     });
-  //     if (!existingUser) throw 'user not found !';
-  //     if (existingUser.password === null)
-  //       throw 'Please login with google if you dont have a password';
-  //     const isValidPass = await compare(password, existingUser.password);
-  //     if (!isValidPass) throw 'incorrect password !';
-  //     const payload = {
-  //       id: existingUser.id,
-  //       username: existingUser.username,
-  //       email: existingUser.email,
-  //       role: existingUser.role,
-  //     };
-  //     const loginToken = sign(payload, process.env.JWT_SECRET!, {
-  //       expiresIn: '30d',
-  //     });
-  //     res.cookie('loginToken', loginToken, {
-  //       httpOnly: true,
-  //       maxAge: 30 * 24 * 60 * 60 * 1000,
-  //     });
-  //     res.cookie('role', existingUser.role);
+  async loginWithMail(req: Request, res: Response) {
+    try {
+      const { mail, password } = req.body;
+      const existingUser = await prisma.user.findUnique({
+        where: { mail },
+      });
+      if (!existingUser) throw 'user not found !';
+      if (existingUser.password === null)
+        throw 'Please login with google if you dont have a password';
+      const isValidPass = await compare(password, existingUser.password);
+      if (!isValidPass) throw 'incorrect password !';
+      const payload = {
+        id: existingUser.id,
+        username: existingUser.username,
+        mail: existingUser.mail,
+        role: existingUser.role,
+      };
+      const loginToken = sign(payload, process.env.JWT_SECRET!, {
+        expiresIn: '30d',
+      });
+      res.cookie('loginToken', loginToken, {
+        httpOnly: true,
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+      });
+      res.cookie('role', existingUser.role);
 
-  //     res
-  //       .status(200)
-  //       .send({ status: 'ok', message: 'login success !', data: existingUser });
-  //   } catch (error) {
-  //     if (error instanceof Error) {
-  //       res.status(400).send({ status: 'error', message: error.message });
-  //     }
-  //     res.status(400).send({ status: 'error', message: error });
-  //   }
-  // }
-  // async logoutUser(req: Request, res: Response) {
-  //   try {
-  //     const loginToken = req.cookies.loginToken;
-  //     if (!loginToken) throw 'no user is logged in !';
-  //     res.clearCookie('loginToken');
-  //     res.clearCookie('role');
-  //     res.status(201).send({ status: 'ok', message: 'logout success !' });
-  //   } catch (error) {
-  //     if (error instanceof Error) {
-  //       res.status(400).send({ status: 'error', message: error.message });
-  //     }
-  //     res.status(400).send({ status: 'error', message: error });
-  //   }
-  // }
+      res
+        .status(200)
+        .send({ status: 'ok', message: 'login success !', data: existingUser });
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(400).send({ status: 'error', message: error.message });
+      }
+      res.status(400).send({ status: 'error', message: error });
+    }
+  }
+  async logoutUser(req: Request, res: Response) {
+    try {
+      const { loginToken, refreshToken } = req.cookies;
+      if (!loginToken) throw 'no user is logged in !';
+      res.clearCookie('loginToken');
+      res.clearCookie('role');
+      res.status(201).send({ status: 'ok', message: 'logout success !' });
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(400).send({ status: 'error', message: error.message });
+      }
+      res.status(400).send({ status: 'error', message: error });
+    }
+  }
 }
