@@ -9,19 +9,11 @@ export const uploaderImg = (filePrefix: string, folderName?: string) => {
     const defaultDir = path.join(__dirname, "../../public")
 
     const storage = multer.diskStorage({
-        destination: (
-            req: Request,
-            file: Express.Multer.File,
-            cb: DestinationCallback
-        ) => {
+        destination: ( req: Request, file: Express.Multer.File, cb: DestinationCallback ) => {
             const destination = folderName ? defaultDir + folderName : defaultDir
             cb(null, destination)
         },
-        filename: (
-            req: Request,
-            file: Express.Multer.File,
-            cb: FileNameCallback
-        ) => {
+        filename: ( req: Request, file: Express.Multer.File, cb: FileNameCallback ) => {
             const originalNameParts = file.originalname.split('.')
             const fileExtension = originalNameParts[originalNameParts.length - 1]
             const newFileName = filePrefix + Date.now() + "." + fileExtension
@@ -29,5 +21,5 @@ export const uploaderImg = (filePrefix: string, folderName?: string) => {
         }
     })
 
-    return multer({ storage: storage })
+    return multer({ storage: storage , limits: { fileSize: 1 * 1024 * 1024 }})
 }

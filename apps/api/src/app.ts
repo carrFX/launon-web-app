@@ -103,7 +103,7 @@ export default class App {
     this.app.use('/api/google', googleRouter.getRouter());
     this.app.use('/api/mail', mailRouter.getRouter());
     this.app.use('/api/auth', authRouter.getRouter());
-    this.app.use('/api/users', userRouter.getRouter());
+    this.app.use('/api/user', userRouter.getRouter());
     this.app.use('/api/address', addressRouter.getRouter());
     this.app.use('/api/attendence', attendanceRouter.getRouter());
     this.app.use('/api/order', orderRouter.getRouter());

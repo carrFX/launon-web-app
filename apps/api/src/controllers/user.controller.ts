@@ -1,12 +1,11 @@
 import { Request, Response } from 'express';
 import prisma from '@/prisma';
-import { verify } from 'jsonwebtoken';
-import { compare } from 'bcrypt';
 import dayjs from 'dayjs';
-import { unVerifiedUser, updateAvaByUserId, updateMailUserByOldMail, updatePassUser, updateUsernameById, updateVerifyUserByVerifyToken } from '@/services/update-data/user.update';
-import { existingUserById, existingUserByMail, existingVerifiedUserByVerifiedToken } from '@/services/existing-data/user.exist';
+import { nullifyUserToken, unVerifiedUser, updateAvaByUserId, updateMailUserByOldMail, updatePassUser, updateUsernameById, updateVerifyUserByVerifyToken } from '@/services/update-data/user.update';
+import { existingUserById, existingUserByMail, existingUserByUserToken, existingVerifiedUserByVerifiedToken } from '@/services/existing-data/user.exist';
 import { deleteUserById } from '@/services/delete.data/user.delete';
 import { verifyRefreshToken } from '@/helpers/jwtToken';
+import { hash } from 'bcrypt';
 export class UserController {
   async getUserProfile(req: Request, res: Response) {
     const { refreshToken } = req.cookies;
@@ -50,9 +49,9 @@ export class UserController {
   }
 
   async updateUsername(req: Request, res: Response) {
+    const {username} = req.body
     try {
-      const {username} = req.body
-      const { refreshToken } = req.cookies.loginToken;
+      const { refreshToken } = req.cookies;
       if (!refreshToken) throw 'no user is logged in !';
       const decoded = await verifyRefreshToken(refreshToken);
       const user = await updateUsernameById(decoded.id, username);
@@ -64,7 +63,7 @@ export class UserController {
   }
   async deleteUser(req: Request, res: Response) {
     try {
-      const { refreshToken } = req.cookies.loginToken;
+      const { refreshToken } = req.cookies;
       if (!refreshToken) throw 'no user is logged in !';
       const decoded = await verifyRefreshToken(refreshToken);
       const deleteUser = await deleteUserById(decoded.id)
@@ -91,16 +90,14 @@ export class UserController {
       res.status(500).send({ message: errorMessage });
     }
   }
-  async updatePasswordUser(req: Request, res: Response) {
-    const { userId, oldPassword, newPassword } = req.body;
+  async forgotPasswordUser(req: Request, res: Response) {
+    const { userToken, newPassword } = req.body;
     try {
-      const user = await existingUserById(userId);
-      if (!user) throw 'user not found !';
-      if (user.password !== null) {
-        const isValid = await compare(oldPassword, user.password);
-        if (!isValid) throw 'incorrect password !';
-      }
-      await updatePassUser(userId, newPassword)
+      const user = await existingUserByUserToken(userToken);
+      if (!user) throw new Error('user not found !');
+      const hashPassword = await hash(newPassword, 10);
+      await nullifyUserToken(user.id);
+      await updatePassUser(user.id, hashPassword)
       res.status(200).send({ status: 'ok', message: 'update password success !' });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : error;

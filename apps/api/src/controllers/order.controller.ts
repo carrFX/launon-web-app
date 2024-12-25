@@ -44,18 +44,15 @@ export class OrderController {
         data: { order, customerIntro, customerAddress, outletName },
       });
     } catch (error) {
-      if(error instanceof Error) {
-        res.status(400).send({ status: 'error', message: error.message });
-      } else {
-        res.status(400).send({ status: 'error', message: error });
-      }
+      const errorMessage = error instanceof Error ? error.message : error as string;
+      return res.status(500).send({ status: 'error',error: errorMessage });
     }
   }
 
   async searcOrder(req: Request, res: Response) {
     try {
       const { date, invoice } = req.body;
-      if (date == null && invoice == null) throw 'date or orderId is required !';
+      if (date == null && invoice == null) throw 'date or invoice is required !';
       if (date) {
         const targetDate = new Date(date);
         targetDate.setUTCHours(targetDate.getUTCHours() - 7); // Kurangi 7 jam untuk WIB
@@ -77,11 +74,8 @@ export class OrderController {
         });
       }
     } catch (error) {
-      if (error instanceof Error)
-        return res
-          .status(400)
-          .send({ status: 'error', message: error.message });
-      res.status(400).send({ status: 'error', message: error });
+      const errorMessage = error instanceof Error ? error.message : error as string;
+      return res.status(500).send({ status: 'error',error: errorMessage });
     }
   }
 
@@ -101,11 +95,8 @@ export class OrderController {
         totalPages: Math.ceil(orders.length / limit),
       });
     } catch (error) {
-      if (error instanceof Error){
-        res.status(400).send({ status: 'error', message: error.message });
-      } else {
-        res.status(400).send({ status: 'error', message: error });
-      }
+      const errorMessage = error instanceof Error ? error.message : error as string;
+      return res.status(500).send({ status: 'error',error: errorMessage });
     }
   }
 
@@ -113,11 +104,11 @@ export class OrderController {
     try {
       const { userId, addressId, pickupSchedule } = req.body;
       const user = await existingUserById(userId);
-      if (!user) throw 'User not found!';
+      if (!user) throw new Error('User not found!');
       const userAddress = await existingAddressById(addressId);
-      if (!userAddress) throw 'Address not found!';
+      if (!userAddress) throw new Error('Address not found!');
       const { nearestOutlet, distance } = await findNearestOutlet(addressId);
-      if (!nearestOutlet?.outletId) throw 'Outlet not found!';
+      if (!nearestOutlet?.outletId) throw new Error('Outlet not found!');
       const newOrder = await createNewOrder(userId, addressId, nearestOutlet.outletId, pickupSchedule);
       const driver = await existingDriverByOutletId(nearestOutlet.outletId);
       if (driver) {
@@ -138,11 +129,8 @@ export class OrderController {
         orderId: newOrder.id,
       });
     } catch (error: any) {
-      if (error instanceof Error) {
-        return res.status(400).send({ status: 'error', message: error.message });
-      } else {
-        res.status(400).send({ status: 'error', message: error });
-      }
+      const errorMessage = error instanceof Error ? error.message : error as string;
+      return res.status(500).send({ status: 'error',error: errorMessage });
     }
   }
 
@@ -170,11 +158,8 @@ export class OrderController {
       });
       return res.status(200).send({status: 'ok', message: 'Order updated successfully', data: updatedOrder});
     } catch (error: any) {
-      if (error instanceof Error) {
-        return res.status(400).send({ status: 'error', message: error.message });
-      } else {
-        res.status(400).send({ status: 'error', message: error });
-      }
+      const errorMessage = error instanceof Error ? error.message : error as string;
+      return res.status(500).send({ status: 'error',error: errorMessage });
     }
   }
 
@@ -221,11 +206,8 @@ export class OrderController {
       
       res.status(200).send({ status: 'ok', message: 'Order status updated successfully and notification sent', data: updatedOrder });
     } catch (error) {
-      if (error instanceof Error){
-        res.status(400).send({ status: 'error', message: error.message });
-      } else {
-        res.status(400).send({ status: 'error', message: error });
-      }
+      const errorMessage = error instanceof Error ? error.message : error as string;
+      return res.status(500).send({ status: 'error',error: errorMessage });
     }
   }
 
@@ -237,11 +219,8 @@ export class OrderController {
       const updatedOrder = await updatePriceWeight(orderId, weight, calculatedPrice, totalItems);
       return res.status(200).send({status: 'ok', message: 'Order price and weight updated successfully', data: updatedOrder});
     } catch (error) {
-      if (error instanceof Error){
-        res.status(400).send({ status: 'error', message: error.message });
-      } else {
-        res.status(400).send({ status: 'error', message: error });
-      }
+      const errorMessage = error instanceof Error ? error.message : error as string;
+      return res.status(500).send({ status: 'error',error: errorMessage });
     }
   }
 
@@ -251,11 +230,8 @@ export class OrderController {
       const deleteOrder = await orderIsDeleted(orderId);
       return res.status(200).send({ status: 'ok', message: 'Order deleted successfully', deleteOrder });
     } catch (error) {
-      if (error instanceof Error){
-        res.status(400).send({ status: 'error', message: error.message });
-      } else {
-        res.status(400).send({ status: 'error', message: error });
-      }
+      const errorMessage = error instanceof Error ? error.message : error as string;
+      return res.status(500).send({ status: 'error',error: errorMessage });
     }
   }
 
@@ -266,7 +242,8 @@ export class OrderController {
       if (!confirmedOrder) throw 'Order not found';
       return res.status(200).send({ status: 'ok', message: 'Order confirmed successfully', data: confirmedOrder });
     } catch (error) {
-      res.status(400).send({ status: 'error', message: error });
+      const errorMessage = error instanceof Error ? error.message : error as string;
+      return res.status(500).send({ status: 'error',error: errorMessage });
     }
   }
 }

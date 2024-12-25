@@ -26,7 +26,7 @@ export const updateVerifyUserByUserId = async (userId: string, verifyToken: stri
 }
 export const updateVerifyUserByVerifyToken = async (verifyToken: string) => {
   const verifiedUser = await existingVerifiedUserByVerifiedToken(verifyToken);
-  if (!verifiedUser) throw new Error("User not verified!");
+  if (!verifiedUser) throw new Error("invalid verify token!");
   return await prisma.verifyUser.updateMany({
             where: {verifyToken},
             data: {
@@ -99,5 +99,13 @@ export const updateRefreshToken = async (id: string, refreshToken: string | null
   return await prisma.user.update({ 
       where: { id },
       data: { refreshToken }
+  })
+}
+export const nullifyUserToken = async (id: string) => {
+  const userExist = await existingUserById(id);
+  if (!userExist) throw new Error("User not found!");
+  return await prisma.user.update({ 
+      where: { id },
+      data: { userToken: null, userTokenExp: null }
   })
 }

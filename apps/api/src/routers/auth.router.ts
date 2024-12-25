@@ -1,5 +1,6 @@
 import { AuthController } from '@/controllers/auth.controller';
 import {
+  validateIdOnParams,
   validateLogin,
   validateRegister,
   validateSetPass,
@@ -18,10 +19,10 @@ export class AuthRouter {
 
   private initializeRoutes(): void {
     this.router.post('/register',validateRegister,this.authController.registerUserWithMail);
-    this.router.post('/set-password',validateSetPass,this.authController.setPassword);
+    this.router.post('/set-password',validateSetPass,this.authController.setPasswordAfterRegister);
     this.router.post('/refresh-token', this.authController.refreshToken);
     this.router.post('/login',validateLogin,this.authController.loginWithMail,);
-    this.router.put('/logout', this.authController.logoutUser);
+    this.router.put('/logout/:id',validateIdOnParams, this.authController.logoutUser);
   }
 
   getRouter(): Router {

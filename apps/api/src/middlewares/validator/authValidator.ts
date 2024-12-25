@@ -1,4 +1,4 @@
-import { createValidators, requiredField, requiredMailField, requiredStringField } from "@/helpers/handleValidator";
+import { createValidators, requiredField, requiredMailField, requiredParamField, requiredStringField } from "@/helpers/handleValidator";
 
 export const validateRegister = createValidators({
   username: requiredStringField("username"),
@@ -13,4 +13,7 @@ export const validateLogin = createValidators({
 export const validateSetPass = createValidators({
   verifyToken: requiredField('verifyToken'),
   password: requiredStringField("password"),
+})
+export const validateIdOnParams = createValidators({
+  id: requiredParamField("id"),
 })

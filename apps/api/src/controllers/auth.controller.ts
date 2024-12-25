@@ -1,15 +1,13 @@
 import { Request, Response } from 'express';
-import prisma from '@/prisma';
 import { compare, hash } from 'bcrypt';
-import { sign } from 'jsonwebtoken';
 import { transporter } from '@/helpers/nodemailer';
 import path from 'path';
 import fs from 'fs';
 import handlebars from 'handlebars';
 import { v4 as uuidv4 } from 'uuid';
 import dayjs from 'dayjs';
-import { existingUserById, existingUserByMail, existingUserByUserToken, existingVerifiedUser } from '@/services/existing-data/user.exist';
-import { setDataPassUser, updatePassUser, updateRefreshToken, updateVerifyUserByUserId, updateVerifyUserByVerifyToken } from '@/services/update-data/user.update';
+import { existingUserById, existingUserByMail, existingVerifiedUser, existingVerifiedUserByVerifiedToken } from '@/services/existing-data/user.exist';
+import { updatePassUser, updateRefreshToken, updateVerifyUserByUserId, updateVerifyUserByVerifyToken } from '@/services/update-data/user.update';
 import { createNewUser, createVerifyUser } from '@/services/create-data/user.create';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '@/helpers/jwtToken';
 const verifyToken = uuidv4();
@@ -34,7 +32,7 @@ export class AuthController {
       const templatePath = path.join( __dirname,'../templates/verificationMail.hbs' );
       const tempalteSource = fs.readFileSync(templatePath, 'utf-8');
       const compiledTemplate = handlebars.compile(tempalteSource);
-      const html = compiledTemplate({ username, link: `${process.env.FRONTEND_URL}/auth/set-password/${newUser.id}/${verifyToken}`});
+      const html = compiledTemplate({ username, link: `${process.env.FRONTEND_URL}/auth/set-password/${verifyToken}`});
       transporter.sendMail(
         {
           from: process.env.MAIL_USER,
@@ -57,20 +55,14 @@ export class AuthController {
       return res.status(500).send({ status: 'error',error: errorMessage });
     }
   }
-  async setPassword(req: Request, res: Response) {
-    const { userId, verifyToken, password } = req.body;
+  async setPasswordAfterRegister(req: Request, res: Response) {
+    const { verifyToken, password } = req.body;
     try {
-      const registerUser = await existingUserById(userId)
-      const resetPassUser = await existingUserByUserToken(verifyToken)
-      if (!registerUser ) throw 'user not found !';
+      const user = await existingVerifiedUserByVerifiedToken(verifyToken);
+      if (!user ) throw 'user not found !';
       const hashedPassword = await hash(password, 10);
-      if (resetPassUser) {
-        await setDataPassUser(verifyToken, hashedPassword)
-      }
-      if (registerUser) {
-        await updatePassUser(registerUser.id, hashedPassword);
-        await updateVerifyUserByVerifyToken(verifyToken)
-      }
+      await updateVerifyUserByVerifyToken(verifyToken);
+      await updatePassUser(user.userId, hashedPassword);
 
       return res.status(200).send({
         status: 'ok',
@@ -110,7 +102,9 @@ export class AuthController {
       const decoded = await verifyRefreshToken(refreshToken);
       const user = await existingUserById(decoded.id);
       // penanganan bisa juga dengan di logoutkan
-      if (!user || user.refreshToken !== refreshToken)throw new Error("invalid refresh token");
+      if (!user || user.refreshToken !== refreshToken){
+        return res.status(401).send({ status: 'error',error: 'unauthorized' });
+      };
       const newAccessToken = await generateAccessToken(user.id, user.role);
       const newRefreshToken = await generateRefreshToken(user.id, user.role);
       await updateRefreshToken(user.id, newRefreshToken);
@@ -124,11 +118,9 @@ export class AuthController {
     }
   }
   async logoutUser(req: Request, res: Response) {
-    const { refreshToken } = req.cookies;
+    const { id } = req.params;
     try {
-      if (!refreshToken) throw 'no user is logged in !';
-      const decoded = await verifyRefreshToken(refreshToken);
-      await updateRefreshToken(decoded.id, null);
+      await updateRefreshToken(id, null);
       res.clearCookie('refreshToken').status(201).send({ status: 'ok', message: 'logout success !' });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : error as string;

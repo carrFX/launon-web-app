@@ -1,21 +1,24 @@
-import { createValidators, requiredMailField, requiredStringField } from "@/helpers/handleValidator";
+import {
+  createValidators,
+  requiredMailField,
+  requiredStringField,
+} from '@/helpers/handleValidator';
 
 export const validateUpdateMailUser = createValidators({
-    oldMail: requiredMailField("oldMail"),
-    newMail: requiredMailField("newMail"),
-    token: requiredStringField("token"),
-})
+  oldMail: requiredMailField('oldMail'),
+  newMail: requiredMailField('newMail'),
+  token: requiredStringField('token'),
+});
 
 export const validateOnlyVerify = createValidators({
-    verifiedToken: requiredStringField("verifiedToken"),
-})
+  verifiedToken: requiredStringField('verifiedToken'),
+});
 
 export const validateUsername = createValidators({
-    username: requiredStringField("username"),
-})
+  username: requiredStringField('username'),
+});
 
 export const validateUpdatePass = createValidators({
-    userId: requiredStringField("userId"),
-    oldPassword: requiredStringField("oldPassword"),
-    newPassword: requiredStringField("newPassword"),
-})
+  userToken: requiredStringField('userToken'),
+  newPassword: requiredStringField('newPassword'),
+});
