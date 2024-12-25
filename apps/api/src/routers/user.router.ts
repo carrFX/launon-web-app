@@ -18,7 +18,7 @@ export class UserRouter {
     this.router.delete('/delete', this.userController.deleteUser);
     this.router.get('/profile', authenticateToken, this.userController.getUserProfile);
     this.router.patch('/update-mail', validateUpdateMailUser, this.userController.updateMailUser); // oldMail, newMail, token
-    this.router.patch('/only-verify', validateOnlyVerify, this.userController.onlyVerifyAccount); // verifiedToken
+    this.router.patch('/only-verify', validateOnlyVerify, this.userController.onlyVerifyAccount); // verifyToken
     this.router.patch('/delete-avatar', this.userController.deleteAvatar);
     this.router.patch('/update-username', validateUsername, this.userController.updateUsername); // username
     this.router.patch('/update-password', validateUpdatePass, this.userController.forgotPasswordUser); // userToken, newPassword

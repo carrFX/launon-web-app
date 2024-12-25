@@ -6,7 +6,7 @@ import handlebars from 'handlebars';
 import { v4 as uuidv4 } from 'uuid';
 import dayjs from 'dayjs';
 import { existingUserByMail, existingVerifiedUser } from '@/services/existing-data/user.exist';
-import { updateUserToken } from '@/services/update-data/user.update';
+import { updateUserToken, updateVerifiedUserToken } from '@/services/update-data/user.update';
 const userToken = uuidv4();
 const userTokenExp = dayjs().add(1, 'hour').toDate();
 
@@ -21,7 +21,7 @@ export class MailController {
         throw 'email already sent, please try again 1 hour after the previous email was sent';
       }
       const username = user.username;
-      await updateUserToken(mail, userToken, userTokenExp);
+      await updateVerifiedUserToken(user.id, false, userToken, userTokenExp);
       const templatePath = path.join(__dirname,'../templates/mailOnlyVerify.hbs',);
       const tempalteSource = fs.readFileSync(templatePath, 'utf-8');
       const compiledTemplate = handlebars.compile(tempalteSource);
@@ -39,7 +39,7 @@ export class MailController {
             status: 'ok',
             message:
               'Please check your email and confirm to verify your account',
-            userToken,
+            verifyToken: userToken,
           });
         },
       );

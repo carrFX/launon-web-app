@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import prisma from '@/prisma';
 import dayjs from 'dayjs';
-import { nullifyUserToken, unVerifiedUser, updateAvaByUserId, updateMailUserByOldMail, updatePassUser, updateUsernameById, updateVerifyUserByVerifyToken } from '@/services/update-data/user.update';
-import { existingUserById, existingUserByMail, existingUserByUserToken, existingVerifiedUserByVerifiedToken } from '@/services/existing-data/user.exist';
+import { nullifyUserToken, unVerifiedUser, updateAvaByUserId, updateMailUserByOldMail, updatePassUser, updateUsernameById, updateUserToken, updateVerifiedUserToken, updateVerifyUserByUserId, updateVerifyUserByVerifyToken } from '@/services/update-data/user.update';
+import { existingUserById, existingUserByMail, existingUserByUserToken, existingVerifiedUser, existingVerifiedUserByVerifiedToken } from '@/services/existing-data/user.exist';
 import { deleteUserById } from '@/services/delete.data/user.delete';
 import { verifyRefreshToken } from '@/helpers/jwtToken';
 import { hash } from 'bcrypt';
@@ -105,15 +105,12 @@ export class UserController {
     }
   }
   async onlyVerifyAccount(req: Request, res: Response) {
-    const { verifiedToken } = req.body;
+    const { verifyToken } = req.body;
     try {
-      const verifiedUser = await existingVerifiedUserByVerifiedToken(verifiedToken)
-      if (!verifiedUser) throw 'user not found !';
-      if (verifiedUser.tokenExp && dayjs().isBefore(dayjs(verifiedUser.tokenExp))) {
-        throw "'Email already sent, please try again 1 hour after the previous email was sent'"
-      }
-      if (verifiedUser.verified) throw 'user already verified !';
-      await updateVerifyUserByVerifyToken(verifiedToken);
+      const user = await existingVerifiedUserByVerifiedToken(verifyToken)
+      if (!user) throw 'Verify not found !';
+      if (user.verified) throw 'user already verified !';
+      await updateVerifiedUserToken(user.userId, true, null, null);
       res.status(200).send({ status: 'ok', message: 'verify account success !' });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : error;

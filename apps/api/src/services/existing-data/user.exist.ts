@@ -4,7 +4,7 @@ export const existingUserByMail = async (mail: string) => {
     return await prisma.user.findUnique({ where: { mail } });
 }
 export const existingUserByUserToken = async (userToken: string) => {
-    return await prisma.user.findUnique({ where: { userToken } });
+    return await prisma.user.findUnique({ where: { userToken }, include: { verifyUser: true } });
 }
 export const existingUserById = async (id: string) => {
     return await prisma.user.findUnique({ where: { id }, include: { verifyUser: true } });

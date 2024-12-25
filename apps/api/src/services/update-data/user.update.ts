@@ -13,7 +13,7 @@ export const setDataPassUser = async (userToken: string, password: string) => {
             },
           });
 }
-export const updateVerifyUserByUserId = async (userId: string, verifyToken: string, tokenExp: Date) => {
+export const updateVerifyUserByUserId = async (userId: string, verifyToken: string | null, tokenExp: Date | null) => {
   const user = await existingUserById(userId);
   if (!user) throw new Error("User not found!");
   return await prisma.verifyUser.updateMany({
@@ -64,7 +64,7 @@ export const updatePassUser = async (id: string, password: string) => {
     data: { password }
   })
 }
-export const updateUserToken = async (mail: string, userToken: string, userTokenExp: Date) => {
+export const updateUserToken = async (mail: string, userToken: string | null, userTokenExp: Date | null) => {
   const user = await existingUserByMail(mail);
   if (!user) throw new Error("User not found!");
   return await prisma.user.update({
@@ -108,4 +108,16 @@ export const nullifyUserToken = async (id: string) => {
       where: { id },
       data: { userToken: null, userTokenExp: null }
   })
+}
+export const updateVerifiedUserToken = async (userId: string, verified: boolean, verifyToken: string | null, tokenExp: Date | null) => {
+  const verifyUser = await existingVerifiedUser(userId);
+  if (!verifyUser) throw new Error("User not found!");
+  return await prisma.verifyUser.updateMany({
+            where: {userId},
+            data: {
+              verified,
+              verifyToken,
+              tokenExp
+            }
+          })
 }

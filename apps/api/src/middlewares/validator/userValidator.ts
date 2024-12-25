@@ -11,7 +11,7 @@ export const validateUpdateMailUser = createValidators({
 });
 
 export const validateOnlyVerify = createValidators({
-  verifiedToken: requiredStringField('verifiedToken'),
+  verifyToken: requiredStringField('verifyToken'),
 });
 
 export const validateUsername = createValidators({
