@@ -12,12 +12,12 @@ export class OutletWorkerRouter {
   }
 
   private initializeRoutes(): void {
-    // this.router.get('/', this.outletWorkerController.getAllOutletWorkers);
-    // this.router.get('/id/:id', this.outletWorkerController.getOutletWorkerById);
-    // this.router.post('/', this.outletWorkerController.createOutletWorker);
-    // this.router.put('/id/:id', this.outletWorkerController.updateOutletWorker);
-    // this.router.delete('/id/:id',this.outletWorkerController.deleteOutletWorker,);
-    // this.router.post('/login', this.outletWorkerController.loginWorker);
+    this.router.post('/register', this.outletWorkerController.registerWorker);
+    this.router.post('/login', this.outletWorkerController.loginWorker);
+    this.router.get('/', this.outletWorkerController.getAllOutletWorkers);
+    this.router.get('/id/:id', this.outletWorkerController.getOutletWorkerById);
+    this.router.put('/id/:id', this.outletWorkerController.updateOutletWorker);
+    this.router.delete('/id/:id',this.outletWorkerController.deleteOutletWorker,);
   }
 
   getRouter(): Router {

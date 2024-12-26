@@ -112,10 +112,12 @@ model Outlet {
 
 model OutletWorker {
   id        String      @id @default(nanoid())
-  mail      String
+  mail      String      @unique
   username  String
+  password  String
   role      WorkerRoles
   outletId  String
+  refreshWorker String? @db.VarChar(255)
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 

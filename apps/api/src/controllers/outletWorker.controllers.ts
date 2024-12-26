@@ -1,163 +1,118 @@
 import { Request, Response } from 'express';
 import prisma from '@/prisma';
-import { OutletWorker, WorkerRoles } from '@prisma/client';
+import { existingAllWorkers, existingWorkerById, existingWorkerByMail, exsistingWorkersByOutletId } from '@/services/existing-data/worker.exist';
+import { compare, hash } from 'bcrypt';
+import { generateAccessToken, generateRefreshToken } from '@/helpers/jwtToken';
+import { updateDataWorker, updateRefreshWorker } from '@/services/update-data/worker.update';
+import { createNewWorker } from '@/services/create-data/worker.create';
+import { existingOutletById } from '@/services/existing-data/outlet.exist';
+import { updateDataDriverStatus } from '@/services/update-data/driver-status.update';
 
 export class OutletWorkerController {
-  // async loginWorker(req: Request, res: Response): Promise<Response> {
-  //   const { email, password } = req.body;
+  async registerWorker(req: Request, res: Response){
+    const { username, mail, password, outletId, role } = req.body;
+    try {
+      const existingMail = await existingWorkerByMail(mail);
+      if(existingMail) throw new Error('Email already exists!');
+      const existingOutlet = await existingOutletById(outletId);
+      if(!existingOutlet) throw new Error('Outlet not found!');
+      const hashPassword = await hash(password, 10);
+      const outletWorker = await createNewWorker(username, mail, hashPassword, outletId, role);
+      res.status(200).send({ status: 'ok', message: 'Register Worker Successfully', data: outletWorker });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : error as string;
+      res.status(500).send({ error: errorMessage });
+    }
+  }
+  async loginWorker(req: Request, res: Response): Promise<Response> {
+    const { mail, password } = req.body;
+    try {
+      const outletWorker = await existingWorkerByMail(mail);
+      if(!outletWorker) throw 'user not found !';
+      const isValidPass = await compare(password, outletWorker.password);
+      if (!isValidPass) throw new Error('incorrect password !');
+      const refreshWorker = await generateRefreshToken(outletWorker.id, outletWorker.role);
+      const accessWorker = await generateAccessToken(outletWorker.id, outletWorker.role);
+      await updateRefreshWorker(outletWorker.mail, refreshWorker);
+      return res
+        .cookie('refreshWorker', refreshWorker, {
+          httpOnly: true,
+          maxAge: 30 * 24 * 60 * 60 * 1000,
+        })
+        .status(200)
+        .send({ message: 'Login successful', outletWorker, data: { outletWorker, accessWorker } });
+    } catch (error) {
+      console.error('Error during login:', error);
+      return res.status(500).send({ error: 'Error logging in' });
+    }
+  }
 
-  //   try {
-  //     const outletWorker: OutletWorker | null =
-  //       await prisma.outletWorker.findUnique({
-  //         where: { email },
-  //       });
+  async getAllOutletWorkers(req: Request, res: Response): Promise<Response> {
+    try {
+      const outletWorkers = await existingAllWorkers();
+      if (!outletWorkers.length) throw new Error('No outlet workers found');
+      return res.status(200).send({ status: 'ok', message: 'Get All Outlet Workers Successfully', data: outletWorkers });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : error as string;
+      return res.status(500).send({ status: 'error', message: errorMessage });
+    }
+  }
 
-  //     if (!outletWorker || outletWorker.password !== password) {
-  //       return res.status(401).send({ error: 'Invalid email or password' });
-  //     }
+  async getOutletWorkerById(req: Request, res: Response): Promise<Response> {
+    const { id } = req.params;
+    try {
+      const outletWorker = await exsistingWorkersByOutletId(id);
+      if (!outletWorker) throw new Error('Outlet worker not found');
+      return res.status(200).send({ status: 'ok', message: 'Get Outlet Worker Successfully', data: outletWorker });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : error as string;
+      return res.status(500).send({ status: 'error', message: errorMessage });
+    }
+  }
 
-  //     return res
-  //       .status(200)
-  //       .send({ message: 'Login successful', outletWorker });
-  //   } catch (error) {
-  //     console.error('Error during login:', error);
-  //     return res.status(500).send({ error: 'Error logging in' });
-  //   }
-  // }
+  async updateOutletWorker(req: Request, res: Response): Promise<Response> {
+    const { id } = req.params;
+    const { outletId, username, password, mail, role } = req.body;
+    try {
+      const existingWorker = await existingWorkerById(id);
+      if(!existingWorker) throw new Error('Outlet worker not found');
+      const workerUpdated = await updateDataWorker(id, outletId, username, password, mail, role);
 
-  // async getAllOutletWorkers(req: Request, res: Response): Promise<Response> {
-  //   try {
-  //     const outletWorkers: OutletWorker[] =
-  //       await prisma.outletWorker.findMany({
-  //         include: {
-  //           jobHistory: true,
-  //           pickupDeliveries: true
-  //         }
-  //       });
+      return res.status(200).send({status: "ok", message: 'Update Outlet Worker Successfully', data: workerUpdated});
+    } catch (error: any) {
+      const errorMessage = error instanceof Error ? error.message : error as string;
+      return res.status(500).send({ stattus: 'error', error: errorMessage });
+    }
+  }
 
-  //     if (!outletWorkers.length) {
-  //       return res.status(404).send({ error: 'No outlet workers found' });
-  //     }
+  async deleteOutletWorker(req: Request, res: Response): Promise<Response> {
+    const { id } = req.params;
+    try {
+      const deletedWorker = await prisma.$transaction([
+        prisma.driverStatus.deleteMany({
+          where: { driverId: id },
+        }),
+        prisma.outletWorker.delete({
+          where: { id: id },
+        }),
+      ]);
+      return res.status(200).send({ status: 'ok', message: 'Outlet worker and related driver status deleted successfully', data: deletedWorker,      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : error as string;
+      return res.status(500).send({ status:'error', message: errorMessage });
+    }
+  }
 
-  //     return res.status(200).send(outletWorkers);
-  //   } catch (error) {
-  //     return res.status(500).send({ error: 'Error fetching outlet workers' });
-  //   }
-  // }
-
-  // async getOutletWorkerById(req: Request, res: Response): Promise<Response> {
-  //   const { id } = req.params;
-
-  //   try {
-  //     const outletWorker = await prisma.outletWorker.findUnique({
-  //       where: { id: Number(id) },
-  //     });
-
-  //     if (!outletWorker) {
-  //       return res.status(404).send({ error: 'Outlet worker not found' });
-  //     }
-
-  //     return res.status(200).send(outletWorker);
-  //   } catch (error) {
-  //     return res.status(500).send({ error: 'Error fetching outlet worker' });
-  //   }
-  // }
-
-  // async createOutletWorker(req: Request, res: Response): Promise<Response> {
-  //   const { outletId, name, password, email, role } = req.body;
-
-  //   try {
-  //     const result = await prisma.$transaction(async (prisma) => {
-  //       const newOutletWorker = await prisma.outletWorker.create({
-  //         data: {
-  //           outletId,
-  //           name,
-  //           password,
-  //           email,
-  //           role,
-  //         },
-  //       });
-
-  //       return newOutletWorker;
-  //     });
-
-  //     return res.status(201).send(result);
-  //   } catch (error) {
-  //     console.error('Error creating outlet worker:', error);
-  //     return res.status(500).send({ error: 'Error creating outlet worker' });
-  //   }
-  // }
-
-  // async updateOutletWorker(req: Request, res: Response): Promise<Response> {
-  //   const { id } = req.params;
-  //   const { outletId, name, password, email, role } = req.body;
-
-  //   try {
-  //     const updatedOutletWorker = await prisma.outletWorker.update({
-  //       where: { id: Number(id) },
-  //       data: {
-  //         outletId,
-  //         name,
-  //         password,
-  //         email,
-  //         role,
-  //       },
-  //     });
-
-  //     return res.status(200).send(updatedOutletWorker);
-  //   } catch (error: any) {
-  //     if (error.code === 'P2025') {
-  //       return res.status(404).send({ error: 'Outlet worker not found' });
-  //     }
-  //     return res.status(500).send({ error: 'Error updating outlet worker' });
-  //   }
-  // }
-
-  // async deleteOutletWorker(req: Request, res: Response): Promise<Response> {
-  //   const { id } = req.params;
-
-  //   try {
-  //     await prisma.$transaction([
-  //       prisma.driverStatus.deleteMany({
-  //         where: { driverId: parseInt(id) },
-  //       }),
-  //       prisma.outletWorker.delete({
-  //         where: { id: parseInt(id) },
-  //       }),
-  //     ]);
-
-  //     return res.status(200).send({
-  //       message: 'Outlet worker and related driver status deleted successfully',
-  //     });
-  //   } catch (error) {
-  //     console.error('Error deleting outlet worker:', error);
-  //     return res.status(500).send({ error: 'Error deleting outlet worker' });
-  //   }
-  // }
-
-  // async updateDriverStatus(req: Request, res: Response): Promise<Response> {
-  //   const { driverId } = req.params;
-  //   const { status, PdrId } = req.body;
-
-  //   if (!driverId) {
-  //     return res.status(400).send({ error: 'Driver ID is required' });
-  //   }
-
-  //   try {
-  //     const updatedDriverStatus = await prisma.driverStatus.update({
-  //       where: {
-  //         driverId: parseInt(driverId),
-  //       },
-  //       data: {
-  //         status,
-  //         PdrId: PdrId === null ? null : PdrId,
-  //       },
-  //     });
-
-  //     return res.status(200).send(updatedDriverStatus);
-  //   } catch (error) {
-  //     console.error('Error updating driver status:', error);
-  //     return res.status(500).send({ error: 'Error updating driver status' });
-  //   }
-  // }
+  async updateDriverStatus(req: Request, res: Response): Promise<Response> {
+    const { driverId } = req.params;
+    const { status, PdrId } = req.body;
+    if (!driverId) throw new Error('Driver ID is required');
+    try {
+      const updatedDriverStatus = await updateDataDriverStatus(driverId, status, PdrId === null ? null : PdrId);
+      return res.status(200).send({status: 'ok', message: 'Update Driver Status Successfully', data: updatedDriverStatus});
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : error as string;
+      return res.status(500).send({ status: 'error', message: errorMessage });
+    }
+  }
 }

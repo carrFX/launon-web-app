@@ -59,7 +59,7 @@ export class PaymentController {
                 if (fraudStatus == 'accept') {
                     const currentOrder = await existingOrderById(orderId);
                     if(!currentOrder) throw "Order not found";
-                    if(currentOrder.status == 'waiting_for_payment'){ 
+                    if(currentOrder.status == 'waiting_for_payment'){
                       await updateStatusPaymentAndOrderStatus(orderId, 'paid', 'ready_for_delivery')
                         const pdrData = {
                             orderId: orderId,
@@ -77,11 +77,10 @@ export class PaymentController {
                     }
                 }
             }
-    
             return res.status(200).send({ status: "ok", message: "Success", data: orderData });
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : error;
-            return res.status(400).send({ status: "error", message: errorMessage });
+            return res.status(500).send({ status: "error", message: errorMessage });
         }
     }
 }
