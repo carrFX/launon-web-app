@@ -13,10 +13,10 @@ export class NotificationRouter {
   }
 
   private initializeRoutes(): void {
-    // this.router.get('/', this.notificationController.getNotifications); // GET /notifications?userId=1&workerId=2
-    // this.router.post('/', this.notificationController.createNotification); 
-    // this.router.patch('/:notificationId', this.notificationController.updateNotification); 
-    // this.router.delete('/:notificationId', this.notificationController.deleteNotification); 
+    this.router.get('/', this.notificationController.getNotifications); // GET /notifications?userId=1&workerId=2
+    this.router.post('/', this.notificationController.createNotification); 
+    this.router.patch('/:notificationId', this.notificationController.updateNotification); 
+    this.router.delete('/:notificationId', this.notificationController.deleteNotification); 
   }
 
   getRouter(): Router {

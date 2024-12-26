@@ -13,7 +13,7 @@ export class SuperAdminRouter {
   }
 
   private initializeRoutes(): void {
-    // this.router.get('/', this.superAdminController.loginSuperAdmin);
+    this.router.get('/', this.superAdminController.loginSuperAdmin);
   }
 
   getRouter(): Router {

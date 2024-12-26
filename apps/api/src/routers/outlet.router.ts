@@ -12,12 +12,12 @@ export class OutletRouter {
   }
 
   private initializeRoutes(): void {
-    // this.router.get('/', this.outletController.getAllOutlet);
-    // this.router.post('/login', this.outletController.loginOutlet);
-    // this.router.get('/id/:id', this.outletController.getOutletById);
-    // this.router.post('/', this.outletController.createOutlet);
-    // this.router.put('/id/:id', this.outletController.updateOutlet);
-    // this.router.delete('/id/:id', this.outletController.deleteOutlet);
+    this.router.get('/', this.outletController.getAllOutlet);
+    this.router.post('/login', this.outletController.loginOutlet);
+    this.router.get('/id/:id', this.outletController.getOutletById);
+    this.router.post('/', this.outletController.createOutlet);
+    this.router.put('/id/:id', this.outletController.updateOutlet);
+    this.router.delete('/id/:id', this.outletController.deleteOutlet);
   }
 
   getRouter(): Router {

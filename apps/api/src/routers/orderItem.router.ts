@@ -13,10 +13,10 @@ export class OrderItemRouter {
   }
 
   private initializeRoutes(): void {
-    // this.router.get('/', this.orderItemController.getOrderItems);
-    // this.router.get('/:id', this.orderItemController.getOrderItemById);
-    // this.router.get('/order/:orderId', this.orderItemController.getOrderItemsByOrderId);
-    // this.router.post('/', this.orderItemController.createOrderItem);
+    this.router.get('/', this.orderItemController.getOrderItems);
+    this.router.get('/:id', this.orderItemController.getOrderItemById);
+    this.router.get('/order/:orderId', this.orderItemController.getOrderItemsByOrderId);
+    this.router.post('/', this.orderItemController.createOrderItem);
   }
 
   getRouter(): Router {
